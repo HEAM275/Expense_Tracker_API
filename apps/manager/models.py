@@ -12,4 +12,4 @@ class User(AbstractUser, AuditableMixins):
         verbose_name_plural = _('User')
 
     def __str__(self):
-        return self.get_full_name
+        return f' {self.first_name} {self.last_name}'

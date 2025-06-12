@@ -52,6 +52,7 @@ LOCAL_APPS = [
 THIRD_APPS = [
     'rest_framework',
     'drf_yasg',
+    'django_filters',
 ]
 
 INSTALLED_APPS = LOCAL_APPS + BASE_APPS + THIRD_APPS
@@ -140,3 +141,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 AUTH_USER_MODEL = 'manager.User'
+
+
+REST_FRAMEWORK = {
+
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+
+}

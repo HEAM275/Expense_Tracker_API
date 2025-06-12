@@ -1,45 +1,64 @@
-from django.shortcuts import render
 from django.utils.translation import gettext_lazy as _
-from rest_framework import status, viewsets
-from rest_framework.response import Response
-from rest_framework.validators import ValidationError
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from drf_yasg import openapi as oa
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework.permissions import IsAuthenticated
 
-# models and serializers
-from apps.manager.serializers.user_serializers import *
-from apps.manager.models import User
-
-# viewser base
 from apps.common.views import BaseModelViewSet
+from apps.expenses.models import Expense
+from apps.expenses.serializers import (
+    ExpenseListSerializer,
+    ExpenseCreateSerializer,
+    ExpenseUpdateSerializer
+)
+
+from apps.expenses.filters import ExpenseFilter
 
 
-class UserViewSet(BaseModelViewSet):
+class ExpenseViewSet(BaseModelViewSet):
     """
-    API endpoints for management of users.
+    API endpoints for management of expenses
     """
-    queryset = User.objects.filter(is_active=True)
-    serializer_class = UserListSerializer
+    queryset = Expense.objects.filter(is_active=True)
+    serializer_class = ExpenseListSerializer
     permission_classes = [IsAuthenticated]
+    filterset_class = ExpenseFilter
 
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:
-            return UserListSerializer
-        if self.action in ['create']:
-            return UserCreateSerializer
+            return ExpenseListSerializer
+        if self.action == 'create':
+            return ExpenseCreateSerializer
         if self.action in ['update', 'partial_update']:
-            return UserUpdateSerializer
-        return UserListSerializer
-
-    def get_permissions(self):
-        if self.action in ['create', 'destroy']:
-            self.permission_classes = [IsAdminUser]
-        return super().get_permissions()
+            return ExpenseUpdateSerializer
+        return ExpenseListSerializer
 
     @swagger_auto_schema(
-        operation_description='List all active users.',
+        operation_description='List all expenses with optional filters',
         manual_parameters=[
+            oa.Parameter(
+                name='date_range',
+                in_=oa.IN_QUERY,
+                description="Filter by date range (last_week, last_month, last_3_months)",
+                type=oa.TYPE_STRING,
+                required=False,
+                enum=['last_week', 'last_month', 'last_3_months']
+            ),
+            oa.Parameter(
+                name='start_date',
+                in_=oa.IN_QUERY,
+                description="Start date for custom range (YYYY-MM-DD)",
+                type=oa.TYPE_STRING,
+                format='date',
+                required=False
+            ),
+            oa.Parameter(
+                name='end_date',
+                in_=oa.IN_QUERY,
+                description="End date for custom range (YYYY-MM-DD)",
+                type=oa.TYPE_STRING,
+                format='date',
+                required=False
+            ),
             oa.Parameter(
                 name='Authorization',
                 in_=oa.IN_HEADER,
@@ -50,20 +69,11 @@ class UserViewSet(BaseModelViewSet):
         ],
         responses={
             200: oa.Response(
-                description='List of users',
-                schema=UserListSerializer(many=True)
+                description='List of expenses',
+                schema=ExpenseListSerializer(many=True)
             ),
             403: oa.Response(
                 description='Forbidden',
-                schema=oa.Schema(
-                    type=oa.TYPE_OBJECT,
-                    properties={
-                        'detail': oa.Schema(type=oa.TYPE_STRING)
-                    }
-                )
-            ),
-            404: oa.Response(
-                description='Not found',
                 schema=oa.Schema(
                     type=oa.TYPE_OBJECT,
                     properties={
@@ -77,7 +87,7 @@ class UserViewSet(BaseModelViewSet):
         return super().list(request, *args, **kwargs)
 
     @swagger_auto_schema(
-        operation_description='Retrieve a specific user.',
+        operation_description='Retrieve a specific expense',
         manual_parameters=[
             oa.Parameter(
                 name='Authorization',
@@ -89,8 +99,8 @@ class UserViewSet(BaseModelViewSet):
         ],
         responses={
             200: oa.Response(
-                description='User details',
-                schema=UserListSerializer
+                description='Expense details',
+                schema=ExpenseListSerializer
             ),
             403: oa.Response(
                 description='Forbidden',
@@ -102,7 +112,7 @@ class UserViewSet(BaseModelViewSet):
                 )
             ),
             404: oa.Response(
-                description='User not found',
+                description='Expense not found',
                 schema=oa.Schema(
                     type=oa.TYPE_OBJECT,
                     properties={
@@ -116,8 +126,8 @@ class UserViewSet(BaseModelViewSet):
         return super().retrieve(request, *args, **kwargs)
 
     @swagger_auto_schema(
-        operation_description='Create a new user.',
-        request_body=UserCreateSerializer,
+        operation_description='Create a new expense',
+        request_body=ExpenseCreateSerializer,
         manual_parameters=[
             oa.Parameter(
                 name='Authorization',
@@ -129,8 +139,8 @@ class UserViewSet(BaseModelViewSet):
         ],
         responses={
             201: oa.Response(
-                description='User created successfully',
-                schema=UserListSerializer
+                description='Expense created successfully',
+                schema=ExpenseListSerializer
             ),
             400: oa.Response(
                 description='Bad request',
@@ -138,7 +148,7 @@ class UserViewSet(BaseModelViewSet):
                     type=oa.TYPE_OBJECT,
                     properties={
                         'message': oa.Schema(type=oa.TYPE_STRING),
-                        'error': oa.Schema(type=oa.TYPE_OBJECT)
+                        'errors': oa.Schema(type=oa.TYPE_OBJECT)
                     }
                 )
             ),
@@ -156,19 +166,20 @@ class UserViewSet(BaseModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            # Usa el perform_create del BaseModelViewSet
+            self.perform_create(serializer)
             return Response({
-                'message': 'User created successfully',
+                'message': _('Expense created successfully'),
                 'data': serializer.data
             }, status=status.HTTP_201_CREATED)
         return Response({
-            'message': 'User could not be created',
-            'error': serializer.errors
+            'message': _('Expense could not be created'),
+            'errors': serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
-        operation_description='Update a user.',
-        request_body=UserUpdateSerializer,
+        operation_description='Update an existing expense',
+        request_body=ExpenseUpdateSerializer,
         manual_parameters=[
             oa.Parameter(
                 name='Authorization',
@@ -180,8 +191,8 @@ class UserViewSet(BaseModelViewSet):
         ],
         responses={
             200: oa.Response(
-                description='User updated successfully',
-                schema=UserListSerializer
+                description='Expense updated successfully',
+                schema=ExpenseListSerializer
             ),
             400: oa.Response(
                 description='Bad request',
@@ -189,7 +200,7 @@ class UserViewSet(BaseModelViewSet):
                     type=oa.TYPE_OBJECT,
                     properties={
                         'message': oa.Schema(type=oa.TYPE_STRING),
-                        'error': oa.Schema(type=oa.TYPE_OBJECT)
+                        'errors': oa.Schema(type=oa.TYPE_OBJECT)
                     }
                 )
             ),
@@ -203,7 +214,7 @@ class UserViewSet(BaseModelViewSet):
                 )
             ),
             404: oa.Response(
-                description='User not found',
+                description='Expense not found',
                 schema=oa.Schema(
                     type=oa.TYPE_OBJECT,
                     properties={
@@ -218,19 +229,22 @@ class UserViewSet(BaseModelViewSet):
         instance = self.get_object()
         serializer = self.get_serializer(
             instance, data=request.data, partial=partial)
+
         if serializer.is_valid():
-            serializer.save()
+
+            self.perform_update(serializer)
             return Response({
-                'message': 'User updated successfully',
+                'message': _('Expense updated successfully'),
                 'data': serializer.data
             }, status=status.HTTP_200_OK)
+
         return Response({
-            'message': 'User could not be updated',
-            'error': serializer.errors
+            'message': _('Expense could not be updated'),
+            'errors': serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
-        operation_description='Delete a user (soft delete: is_active=False).',
+        operation_description='Delete an expense (soft delete)',
         manual_parameters=[
             oa.Parameter(
                 name='Authorization',
@@ -241,14 +255,8 @@ class UserViewSet(BaseModelViewSet):
             ),
         ],
         responses={
-            200: oa.Response(
-                description='User deleted successfully',
-                schema=oa.Schema(
-                    type=oa.TYPE_OBJECT,
-                    properties={
-                        'message': oa.Schema(type=oa.TYPE_STRING)
-                    }
-                )
+            204: oa.Response(
+                description='Expense deleted successfully'
             ),
             403: oa.Response(
                 description='Forbidden',
@@ -260,7 +268,7 @@ class UserViewSet(BaseModelViewSet):
                 )
             ),
             404: oa.Response(
-                description='User not found',
+                description='Expense not found',
                 schema=oa.Schema(
                     type=oa.TYPE_OBJECT,
                     properties={
@@ -272,9 +280,6 @@ class UserViewSet(BaseModelViewSet):
     )
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        instance.is_active = False
-        instance.save()
-        return Response(
-            {'message': 'User deleted successfully'},
-            status=status.HTTP_200_OK
-        )
+
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
