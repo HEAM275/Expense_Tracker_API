@@ -1,5 +1,4 @@
 
-# apps/authentication/serializers.py
 
 from rest_framework import serializers
 from apps.manager.models import User

@@ -50,13 +50,13 @@ class ExpenseAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
     def delete_model(self, request, obj):
-        # Soft delete consistente con el BaseModelViewSet
+
         obj.is_active = False
         obj.deleted_by = request.user.get_full_name() or request.user.username
         obj.save()
 
     def has_delete_permission(self, request, obj=None):
-        return True  # Permite el soft delete desde admin
+        return True
 
     actions = ['soft_delete_selected', 'activate_selected']
 

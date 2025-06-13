@@ -166,7 +166,7 @@ class ExpenseViewSet(BaseModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            # Usa el perform_create del BaseModelViewSet
+
             self.perform_create(serializer)
             return Response({
                 'message': _('Expense created successfully'),

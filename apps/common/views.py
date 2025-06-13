@@ -6,8 +6,6 @@ from rest_framework.response import Response
 from rest_framework import status
 
 
-# apps/base/views.py
-
 def get_user_fullname(user):
     if not user or not user.is_authenticated:
         return None
@@ -50,7 +48,7 @@ class BaseModelViewSet(viewsets.ModelViewSet):
             full_name = get_user_fullname(user)
             instance.deleted_by = full_name
             instance.deleted_date = timezone.now()
-            instance.is_active = False  # o lo que uses para soft delete
+            instance.is_active = False
             instance.save()
         else:
             instance.deleted_by = "Desconocido"

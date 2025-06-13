@@ -41,7 +41,7 @@ class ExpenseUpdateSerializer(serializers.ModelSerializer):
             'user',
             'payment_date'
         ]
-        read_only_fields = ['user']  # Campo solo lectura
+        read_only_fields = ['user']
 
     # Validación: amount >= 0
     def validate_amount(self, value):
@@ -50,14 +50,12 @@ class ExpenseUpdateSerializer(serializers.ModelSerializer):
                 _("El monto no puede ser negativo."))
         return value
 
-    # Validación: type debe estar en EXPENSE_TYPE_CHOICES
     def validate_type(self, value):
         valid_choices = dict(Expense.EXPENSE_TYPE_CHOICES).keys()
         if value not in valid_choices:
             raise serializers.ValidationError(_("Tipo de gasto no válido."))
         return value
 
-    # # Validación opcional a nivel de objeto completo
     # def validate(self, data):
-    #     # Aquí puedes agregar más lógica si necesitas validar combinaciones de campos
+    #
     #     return data

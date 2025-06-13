@@ -1,5 +1,4 @@
 
-# apps/authentication/views.py
 import jwt
 from django.conf import settings
 from apps.manager.models import User

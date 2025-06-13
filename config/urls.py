@@ -14,6 +14,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.utils.translation import gettext_lazy as _
 from django.contrib import admin
 from django.urls import path, re_path, include
 
@@ -22,11 +23,11 @@ from drf_yasg import openapi
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="Blog API",
+        title=_("Expense Tracker API"),
         default_version='v1',
-        description="Documentación del Blog API",
+        description=_("Expense Tracker API Documentation"),
         terms_of_service="https://www.google.com/policies/terms/",
-        contact=openapi.Contact(email="contact@example.com"),
+        contact=openapi.Contact(email="abreuharold38@gmail.com"),
         license=openapi.License(name="MIT License"),
     ),
     public=True,

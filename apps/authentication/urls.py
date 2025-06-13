@@ -1,4 +1,3 @@
-# apps/authentication/urls.py
 
 from django.urls import path
 from apps.authentication.views import LoginView, RefreshTokenView, LogoutView

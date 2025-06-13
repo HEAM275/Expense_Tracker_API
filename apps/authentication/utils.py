@@ -1,5 +1,4 @@
 
-# apps/authentication/utils.py
 
 import jwt
 import uuid
@@ -22,9 +21,6 @@ def generate_access_token(user):
 
 def generate_refresh_token():
     return str(uuid.uuid4())
-
-
-# apps/authentication/utils.py
 
 
 def send_verification_email(user, token):

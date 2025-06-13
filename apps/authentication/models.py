@@ -1,5 +1,4 @@
 
-# apps/authentication/models.py
 
 from django.db import models
 from django.conf import settings
@@ -40,9 +39,6 @@ class BlacklistedToken(models.Model):
         return cls.objects.filter(token=token, expires_at__gt=timezone.now()).exists()
 
 
-# apps/authentication/models.py
-
-
 class EmailVerification(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -62,5 +58,5 @@ class PasswordResetToken(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def is_valid(self):
-        # Token válido 24 horas
+
         return (timezone.now() - self.created_at).hours < 24
