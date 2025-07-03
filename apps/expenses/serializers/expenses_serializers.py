@@ -6,19 +6,18 @@ from ..models import Expense
 class ExpenseListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Expense
-        fields = ('amount', 'description', 'type', 'user', 'payment_date')
+        fields = ("amount", "description", "type", "user", "payment_date")
         read_only_fields = fields
 
 
 class ExpenseCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Expense
-        fields = ('amount', 'description', 'type', 'user', 'payment_date')
+        fields = ("amount", "description", "type", "user", "payment_date")
 
     def validate_amount(self, value):
         if value < 0:
-            raise serializers.ValidationError(
-                _("El monto no puede ser negativo."))
+            raise serializers.ValidationError(_("El monto no puede ser negativo."))
         return value
 
     def validate_type(self, value):
@@ -33,21 +32,13 @@ class ExpenseUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Expense
-        fields = [
-            'id',
-            'amount',
-            'description',
-            'type',
-            'user',
-            'payment_date'
-        ]
-        read_only_fields = ['user']
+        fields = ["id", "amount", "description", "type", "user", "payment_date"]
+        read_only_fields = ["user"]
 
     # Validación: amount >= 0
     def validate_amount(self, value):
         if value < 0:
-            raise serializers.ValidationError(
-                _("El monto no puede ser negativo."))
+            raise serializers.ValidationError(_("El monto no puede ser negativo."))
         return value
 
     def validate_type(self, value):
